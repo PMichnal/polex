@@ -1,0 +1,276 @@
+#!/bin/bash
+
+# the name polex is chosen cuz "pol" -> Tab is a sequance pretty eazey to get down fast
+
+wd=$(dirname "$0")
+
+source $wd/settings.sh
+source $wd/functions.sh
+
+
+PROJECT_NAME="$1"
+LANGUAGE="$2"
+LANGUAGE=$(echo "$LANGUAGE" | tr '[:lower:]' '[:upper:]')
+if [ "$LANGUAGE" = "C++" ]
+then 
+    LANGUAGE="CPP"
+elif [ "$LANGUAGE" = "PY" ]
+then
+    LANGUAGE="PYTHON"
+elif [ "$LANGUAGE" = "JL" ]
+then
+    LANGUAGE="JULIA"
+fi
+
+mkdir -p ~/Projects
+
+
+
+# Check if the first argument is --help
+if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--h" ]
+then
+    printf "%-80s\n" "" "polex [options] [project_name] [language]" ""
+    printf "  %-18s %s\n" "-l, --list" "List all existing projects"
+    printf "  %-18s %s\n" "-h, --help" "Show this help message and exit"
+    printf "  %-18s %s\n" "-a, --add" "Add a new language"
+    printf "  %-18s %s\n" "-d, --delete" "Delete an existing language"
+    printf "\n"
+    printf "%-80s\n" "Arguments:"
+    printf "  %-18s %s\n" "project_name" "The name of the project to create or open"
+    printf "  %-18s %s\n" "language" "The language of the project"
+    exit 0
+fi
+
+
+
+
+if [ "$1" = "-list" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ] || [ "$1" = "--l" ]
+then
+    if [ -d ~/Projects ]
+    then
+        for dir in ~/Projects/*/
+        do
+            if [ "$(ls -A $dir)" ]
+            then
+                dir_name=$(basename $dir)
+                case $dir_name in
+                    "PYTHON")
+                        color=$PYTHON_COLOR
+                        ;;
+                    "C++")
+                        color=$CPP_COLOR
+                        ;;
+                    "JULIA")
+                        color=$JULIA_COLOR
+                        ;;
+                    *)
+                        color=$RED
+                        ;;
+                esac
+                echo "$dir_name Projects:"
+                for subdir in $dir*/
+                do
+                    if [ -d "$subdir" ]
+                    then
+                        subdir_name=$(basename "$subdir")
+                        created=$(stat -c %w "$subdir")
+                        printf "${color}> %-20s${NC} (created: %s)\n" "$subdir_name" "$created"
+                    fi
+                done
+                echo -e "\n"
+            fi
+        done
+    else
+        echo "No projects inside ~/Projects directory"
+    fi
+    exit 0
+fi
+
+
+if [ "$1" = "-add" ] || [ "$1" = "--add" ] || [ "$1" = "-a" ] || [ "$1" = "--a" ]
+then
+    read -p "Enter the name of the language: " language_name
+    read -p "Enter the default name for the file in this language: " default_file
+    LANGUAGE=$(echo "$language_name" | tr '[:lower:]' '[:upper:]')
+
+    if [ -d ~/Projects/$LANGUAGE ]
+    then
+        echo "Error: Language directory already exists"
+        exit 1
+    else
+        mkdir ~/Projects/$LANGUAGE
+        # Create a new template file for the language in the Templates directory
+        touch "$wd/Templates/$default_file"
+
+        # Update the settings.sh file
+        echo "${LANGUAGE}DEF=\"$default_file\"" >> "$wd/settings.sh"
+    fi
+
+    exit 0
+fi
+
+if [ "$1" = "-delete" ] || [ "$1" = "--delete" ] || [ "$1" = "-d" ] || [ "$1" = "--d" ]
+then
+    read -p "Enter the name of the language to delete: " language_name
+    LANGUAGE=$(echo "$language_name" | tr '[:lower:]' '[:upper:]')
+    
+    # Delete the ~/Projects/$LANGUAGE directory
+    if [ -d ~/Projects/$LANGUAGE ]
+    then
+        rm -rf ~/Projects/$LANGUAGE
+        echo "Language directory deleted"
+    else
+        echo "Error: Language directory does not exist"
+        exit 1
+    fi
+    
+
+    # Delete the file associated with the language in the Templates directory
+    DEF_FILE="${LANGUAGE}DEF"
+    DEF_FILE=$(eval echo \$$DEF_FILE)
+
+    rm "$wd/Templates/$DEF_FILE"
+    echo "Template file deleted"
+    
+
+    # Delete the line in ~/settings.sh starting with ${LANGUAGE}DEF
+    sed -i "/^${LANGUAGE}DEF/d" "$wd/settings.sh"
+    
+    exit 0
+fi
+
+
+# Make sure the user provides a name for the project
+if [ -z "$PROJECT_NAME" ]
+then
+    echo "Error: Name for the project not provided"
+    exit 1
+fi
+
+# Automatically detect the language if it is not provided
+if [ -z "$LANGUAGE" ]
+then
+    # Count the number of directories with the given project name
+    PROJECT_COUNT=$(find ~/Projects/*/* -maxdepth 1 -type d -name "$PROJECT_NAME" | wc -l)
+    if [ $PROJECT_COUNT -eq 1 ]
+    then
+        # If there is only one directory with the given project name,
+        # automatically detect the language by getting the parent directory name
+        LANGUAGE=$(basename $(dirname $(find ~/Projects/* -maxdepth 1 -type d -name "$PROJECT_NAME")))
+    else
+        echo "Error: Language for the project not provided"
+        exit 1
+    fi
+fi
+
+
+
+
+DEF_FILE="${LANGUAGE}DEF"
+DEF_FILE=$(eval echo \$$DEF_FILE)
+
+echo "LANGUAGE: $LANGUAGE"
+
+if [ "$LANGUAGE" = "CPP" ]
+then
+    if [ -d ~/Projects/C++/$PROJECT_NAME ]
+    then
+        echo "Project with that name exists already"
+
+        #open the main file in VS code
+        code ~/Projects/C++/$PROJECT_NAME
+        code ~/Projects/C++/$PROJECT_NAME/main.cpp
+    else
+        echo "Creating..."
+        #creating directory for C++
+        create_directory C++ $PROJECT_NAME
+        #just create a main.cpp file
+        cd ~/Projects/C++/$PROJECT_NAME/
+        get_template $DEF_FILE  > main.cpp
+        code ~/Projects/C++/$PROJECT_NAME
+        code ~/Projects/C++/$PROJECT_NAME/main.cpp
+    fi
+
+
+elif [ "$LANGUAGE" = "PYTHON" ]
+then
+    if [ -d ~/Projects/PYTHON/$PROJECT_NAME ]
+    then
+        echo "Project with that name exists already"
+
+        cd ~/Projects/PYTHON/$PROJECT_NAME
+
+        #BASICALLY ACTIVATES THE ENVIROMENT AUTOMATICALY WHEN OPENNING THE TERMINAL IN VS CODE
+        #have to include the source, otherwise shell doesnt know what activate is
+        source ~/anaconda3/etc/profile.d/conda.sh
+        conda activate $PROJECT_NAME
+        
+
+        code ~/Projects/PYTHON/$PROJECT_NAME
+        code ~/Projects/PYTHON/$PROJECT_NAME/main.py
+    else
+        create_directory PYTHON $PROJECT_NAME
+        
+        cd ~/Projects/PYTHON/$PROJECT_NAME
+        #setup conda enviroment, automatically install basic packages to it
+        conda create -y --name $PROJECT_NAME #python numpy pandas
+        source ~/anaconda3/etc/profile.d/conda.sh
+        conda activate $PROJECT_NAME
+
+        #create the main.py file with regards to the template given
+        get_template $DEF_FILE > main.py
+        code ~/Projects/PYTHON/$PROJECT_NAME
+        code ~/Projects/PYTHON/$PROJECT_NAME/main.py
+    fi
+
+
+
+elif [ "$LANGUAGE" = "JULIA" ]     #|| [ -z "$LANGUAGE" ] #WILL SET JULIA TO DEFAULT (probably what i want), COULD ADD A OPTION TO CHANGE THE DEFAULT
+then
+    echo "słuszny wybór"
+    
+      if [ -d ~/Projects/JULIA/$PROJECT_NAME ]
+      then
+            echo "Project with that name exists already"
+
+            #open the main file in VS code, and open the REPL in terminal
+            code ~/Projects/JULIA/$PROJECT_NAME
+            code ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
+            julia --project=$PROJECT_NAME
+      else
+            #creating directory for JULIA
+            #takes care of creating a project file also
+            create_directory JULIA $PROJECT_NAME
+
+            #setup Julia enviroment
+            mkdir ~/Projects/JULIA/$PROJECT_NAME/.vscode
+            #Activating the environment, so that i dont have to click it every time
+            echo -e "{\n\t\"julia.environmentPath\": \"$HOME/Projects/JULIA/$PROJECT_NAME\"\n}" >  ~/Projects/JULIA/$PROJECT_NAME/.vscode/settings.json
+            code ~/Projects/JULIA/$PROJECT_NAME
+            code ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
+            julia --project=$PROJECT_NAME
+
+      fi
+elif [ -d ~/Projects/$LANGUAGE ]
+then
+    if [ -d ~/Projects/$LANGUAGE/$PROJECT_NAME ]
+    then
+        echo "Project with that name exists already"
+
+        #open the main file in VS code
+        code ~/Projects/$LANGUAGE/$PROJECT_NAME
+        code ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
+    else
+        #creating directory
+        create_directory $LANGUAGE $PROJECT_NAME
+        #just create
+        cd ~/Projects/$LANGUAGE/$PROJECT_NAME/
+        get_template $DEF_FILE > $DEF_FILE
+        code ~/Projects/$LANGUAGE/$PROJECT_NAME
+        code ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
+    fi
+
+else
+    echo "Be precise about the language to use in the project"
+    exit 1
+fi
