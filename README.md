@@ -13,7 +13,6 @@ polex [options] [project_name] [language]
 - `-h`, `--help`: Show the help message
 - `-a`, `--add`: Add a new language
 - `-delete`, `--delete`: Delete a language and its associated files
-- `-init`, `--init`: Initialize the project at the specified location
 
 ### Arguments
 
