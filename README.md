@@ -5,7 +5,11 @@
 ## Recomendations
 
 `polex`, can be used completely by itself, however if you wish to use Conda for Python environment creation or Julia's `Pkg.generate()` you can also do it by calling ...
-If you would like to specify a text editor you can do it by running...
+```
+```
+If you would like to specify a text editor you can do it by running... 
+```
+```
 
 If you would like to get the most out of it, we suggest you install these:
 
@@ -13,7 +17,10 @@ If you would like to get the most out of it, we suggest you install these:
 - [Julia](https://julialang.org/downloads/): A high-level, high-performance programming language for technical computing.
 - [Visual Studio Code](https://code.visualstudio.com/): A code editor with support for many languages and features.
 
-## Installing Recomendations
+
+
+<details><summary>!! Installing Recomendations</summary>
+<p>
 
 You can download miniconda by running:
 ```
@@ -47,6 +54,11 @@ You can Install VSCode by running:
 ```
 sudo apt-get install code
 ```
+
+</p>
+</details>
+
+
 
 ## Usage
 
