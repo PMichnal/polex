@@ -2,7 +2,18 @@
 
 `polex` is a Bash script for creating and managing projects in different programming languages.
 
+## Prerequisites
+
+Before using `polex`, you need to have the following software installed on your system:
+
+- [Conda](https://docs.conda.io/en/latest/miniconda.html): A package and environment manager for Python and other languages.
+- [Julia](https://julialang.org/downloads/): A high-level, high-performance programming language for technical computing.
+- [Visual Studio Code](https://code.visualstudio.com/): A code editor with support for many languages and features.
+
+After installing Julia, you also need to add its binary directory to your system `PATH` so that you can run the `julia` command from the command line. You can find instructions on how to do this in the [Julia documentation](https://julialang.org/downloads/platform/#adding_julia_to_path_on_windows_10).
+
 ## Usage
+
 
 polex [options] [project_name] [language]
 
