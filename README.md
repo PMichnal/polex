@@ -54,4 +54,3 @@ The `polex` project consists of four files and one folder:
 - `polex-completion.sh`: A script that provides tab completion for the `polex` command
 - `Templates`: A folder that contains template files for different languages
 
-When you initialize the project using the `-init` option, these files and folder will be copied to the specified location. You can also specify a separate location for creating the `Projects` directory, which will be used to store the projects created by the `polex` script.
