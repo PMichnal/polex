@@ -81,6 +81,7 @@ polex [options] [project_name] [language]
 - `--conda`: Use Conda for Python environment creation
 - `--conda-packages`: Use Conda for managing Python packages
 - `-e`, `--editor`: Change default text editor
+- `-julia`: Use `Pkg.generate()` for Julia environment creation
 
 ### Arguments
 
