@@ -24,23 +24,69 @@ fi
 
 mkdir -p ~/Projects
 
-
-
 # Check if the first argument is --help
 if [ "$1" = "--help" ] || [ "$1" = "-h" ] || [ "$1" = "-help" ] || [ "$1" = "--h" ]
 then
-    printf "%-80s\n" "" "polex [options] [project_name] [language]" ""
-    printf "  %-18s %s\n" "-l, --list" "List all existing projects"
-    printf "  %-18s %s\n" "-h, --help" "Show this help message and exit"
-    printf "  %-18s %s\n" "-a, --add" "Add a new language"
-    printf "  %-18s %s\n" "-d, --delete" "Delete an existing language"
+    printf "%-80s\n" "" "usage: polex [options] [project_name] [language]" ""
+    printf "%-80s\n" "" "polex is a tool for creating and managing projects for different programming languages." ""
+    printf "%-80s\n" "Options:"
+    printf "  %-40s %s\n" "-l, --list" "List all existing projects"
+    printf "  %-40s %s\n" "-h, --help" "Show this help message and exit"
+    printf "  %-40s %s\n" "-a, --add" "Add a new language"
+    printf "  %-40s %s\n" "-d, --delete" "Delete an existing language"
+    printf "  %-40s %s\n" "--conda LANGUAGE yes|no" "Use conda (yes) or not (no) for LANGUAGE"
+    printf "  %-40s %s\n" "--conda-packages LANGUAGE PACKAGE1 ..." "Set default conda packages for LANGUAGE"
+    printf "  %-40s %s\n" "-e, --editor EDITOR" "Set the text editor for the project"
+    printf "  %-40s %s\n" "-julia yes|no" "Use Julia packages (yes) or not (no)"
     printf "\n"
     printf "%-80s\n" "Arguments:"
-    printf "  %-18s %s\n" "project_name" "The name of the project to create or open"
-    printf "  %-18s %s\n" "language" "The language of the project"
+    printf "  %-40s %s\n" "project_name" "The name of the project to create or open"
+    printf "  %-40s %s\n" "language" "The language of the project"
     exit 0
 fi
 
+
+# Check if the first argument is --conda
+if [ "$1" = "--conda" ]
+then
+    # Get the language and value from the second and third command line arguments
+    LANGUAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+    VALUE="$3"
+    
+    # Check if the value is yes or no
+    if [ "$VALUE" = "yes" ] || [ "$VALUE" = "no" ]
+    then
+        # Update the CONDA_USAGE variable for this language in settings.sh with the new value
+        sed -i "/^CONDA_USAGE_$LANGUAGE=/c\CONDA_USAGE_$LANGUAGE=$VALUE" "$wd/settings.sh"
+        echo "Conda usage for $LANGUAGE updated to $VALUE"
+    else
+        # If the value is not yes or no, print an error message and exit with an error code
+        echo "Error: Invalid value for --conda option (must be yes or no)"
+        exit 1
+    fi
+    
+    exit 0
+fi
+
+# Check if the first argument is --conda-packages
+if [ "$1" = "--conda-packages" ]
+then
+    # Get the language from the second command line argument
+    LANGUAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+    
+    # Shift the command line arguments to remove the first two arguments
+    shift 2
+    
+    # Join the remaining command line arguments into a space-separated string of package names
+    PACKAGES="$*"
+    
+    # Update the CONDA_PACKAGES variable for this language in settings.sh with the new value
+    sed -i "/^CONDA_PACKAGES_$LANGUAGE=/c\CONDA_PACKAGES_$LANGUAGE=\"$PACKAGES\"" "$wd/settings.sh"
+    
+    echo "Conda packages for $LANGUAGE updated to $PACKAGES"
+    
+    exit 0
+fi
 
 
 
@@ -87,27 +133,41 @@ then
 fi
 
 
+# Check if the first argument is -add or --add 
 if [ "$1" = "-add" ] || [ "$1" = "--add" ] || [ "$1" = "-a" ] || [ "$1" = "--a" ]
-then
-    read -p "Enter the name of the language: " language_name
-    read -p "Enter the default name for the file in this language: " default_file
-    LANGUAGE=$(echo "$language_name" | tr '[:lower:]' '[:upper:]')
-
-    if [ -d ~/Projects/$LANGUAGE ]
-    then
+then 
+    # Prompt the user to enter the name of the new language and its default file name 
+    read -p "Enter the name of the language: " language_name 
+    read -p "Enter the default name for the file in this language: " default_file 
+    
+    # Convert the language name to uppercase 
+    LANGUAGE=$(echo "$language_name" | tr '[:lower:]' '[:upper:]') 
+    
+    # Check if a directory for this language already exists 
+    if [ -d ~/Projects/$LANGUAGE ] 
+    then 
+        # If it does, print an error message and exit with an error code 
         echo "Error: Language directory already exists"
-        exit 1
-    else
-        mkdir ~/Projects/$LANGUAGE
-        # Create a new template file for the language in the Templates directory
+        exit 1 
+    else 
+        # If it doesn't, create a new directory for this language in ~/Projects 
+        mkdir ~/Projects/$LANGUAGE 
+        
+        # Create a new template file for this language in the Templates directory 
         touch "$wd/Templates/$default_file"
-
-        # Update the settings.sh file
+        
+        # Update settings.sh with a new line defining DEF_FILE for this language 
         echo "${LANGUAGE}DEF=\"$default_file\"" >> "$wd/settings.sh"
-    fi
+        
+        # Add a new line to settings.sh defining CONDA_USAGE for this language
+        echo "CONDA_USAGE_$LANGUAGE=no" >> "$wd/settings.sh"
 
-    exit 0
+        echo "CONDA_PACKAGES_$LANGUAGE=\"\"" >> "$wd/settings.sh"
+    fi
+    
+    exit 0 
 fi
+
 
 if [ "$1" = "-delete" ] || [ "$1" = "--delete" ] || [ "$1" = "-d" ] || [ "$1" = "--d" ]
 then
@@ -135,6 +195,43 @@ then
 
     # Delete the line in ~/settings.sh starting with ${LANGUAGE}DEF
     sed -i "/^${LANGUAGE}DEF/d" "$wd/settings.sh"
+    sed -i "/^CONDA_USAGE_${LANGUAGE}/d" "$wd/settings.sh"
+    sed -i "/^CONDA_PACKAGES_${LANGUAGE}/d" "$wd/settings.sh"
+    
+    exit 0
+fi
+
+if [ "$1" = "-e" ] || [ "$1" = "--editor" ] || [ "$1" = "--e" ] || [ "$1" = "-editor" ]
+then
+    # Get the name of the text editor from the command line argument
+    editor_name="${2}"
+    if [ "$editor_name" == "" ]
+    then
+        echo "Error: Invalid text editor"
+        exit 1
+    else
+    # Update the value of the EDITOR variable in settings.sh
+    sed -i "s/^EDITOR=.*/EDITOR=\"$editor_name\"/" "$wd/settings.sh"
+    
+    echo "Text editor changed to $editor_name"
+    
+    exit 0
+    fi
+fi
+
+
+if [[ "$1" = "-julia" ]]
+then
+    if [ "$2" = "yes" ] || [ "$2" = "no" ]
+    then
+        # Update the CONDA_USAGE variable for this language in settings.sh with the new value
+        sed -i "/^JULIA_PKG=/c\JULIA_PKG=$2" "$wd/settings.sh"
+        echo "Julia usage for updated to $2"
+    else
+        # If the value is not yes or no, print an error message and exit with an error code
+        echo "Error: Invalid value for -julia option (must be yes or no)"
+        exit 1
+    fi
     
     exit 0
 fi
@@ -164,8 +261,6 @@ then
 fi
 
 
-
-
 DEF_FILE="${LANGUAGE}DEF"
 DEF_FILE=$(eval echo \$$DEF_FILE)
 
@@ -177,9 +272,9 @@ then
     then
         echo "Project with that name exists already"
 
-        #open the main file in VS code
-        code ~/Projects/C++/$PROJECT_NAME
-        code ~/Projects/C++/$PROJECT_NAME/main.cpp
+        #open the main file
+        [[ "$EDITOR" == "code" ]] && $EDITOR ~/Projects/C++/$PROJECT_NAME
+        $EDITOR ~/Projects/C++/$PROJECT_NAME/main.cpp
     else
         echo "Creating..."
         #creating directory for C++
@@ -187,8 +282,8 @@ then
         #just create a main.cpp file
         cd ~/Projects/C++/$PROJECT_NAME/
         get_template $DEF_FILE  > main.cpp
-        code ~/Projects/C++/$PROJECT_NAME
-        code ~/Projects/C++/$PROJECT_NAME/main.cpp
+        [[ "$EDITOR" == "code" ]] && $EDITOR ~/Projects/C++/$PROJECT_NAME
+        $EDITOR ~/Projects/C++/$PROJECT_NAME/main.cpp
     fi
 
 
@@ -201,31 +296,27 @@ then
         cd ~/Projects/PYTHON/$PROJECT_NAME
 
         #BASICALLY ACTIVATES THE ENVIROMENT AUTOMATICALY WHEN OPENNING THE TERMINAL IN VS CODE
-        #have to include the source, otherwise shell doesnt know what activate is
-        source ~/anaconda3/etc/profile.d/conda.sh
-        conda activate $PROJECT_NAME
+        handle_conda $PROJECT_NAME $LANGUAGE
         
 
-        code ~/Projects/PYTHON/$PROJECT_NAME
-        code ~/Projects/PYTHON/$PROJECT_NAME/main.py
+        [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/PYTHON/$PROJECT_NAME
+        $EDITOR ~/Projects/PYTHON/$PROJECT_NAME/main.py
     else
         create_directory PYTHON $PROJECT_NAME
         
         cd ~/Projects/PYTHON/$PROJECT_NAME
         #setup conda enviroment, automatically install basic packages to it
-        conda create -y --name $PROJECT_NAME #python numpy pandas
-        source ~/anaconda3/etc/profile.d/conda.sh
-        conda activate $PROJECT_NAME
+        handle_conda $PROJECT_NAME $LANGUAGE
 
         #create the main.py file with regards to the template given
         get_template $DEF_FILE > main.py
-        code ~/Projects/PYTHON/$PROJECT_NAME
-        code ~/Projects/PYTHON/$PROJECT_NAME/main.py
+        [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/PYTHON/$PROJECT_NAME
+        $EDITOR ~/Projects/PYTHON/$PROJECT_NAME/main.py
     fi
 
 
-
-elif [ "$LANGUAGE" = "JULIA" ]     #|| [ -z "$LANGUAGE" ] #WILL SET JULIA TO DEFAULT (probably what i want), COULD ADD A OPTION TO CHANGE THE DEFAULT
+# special environment generation for julia, cant be used with conda
+elif [ $JULIA_PKG = "yes" ] && [ "$LANGUAGE" = "JULIA" ]     #|| [ -z "$LANGUAGE" ] #WILL SET JULIA TO DEFAULT (probably what i want), COULD ADD A OPTION TO CHANGE THE DEFAULT
 then
     echo "słuszny wybór"
     
@@ -233,9 +324,9 @@ then
       then
             echo "Project with that name exists already"
 
-            #open the main file in VS code, and open the REPL in terminal
-            code ~/Projects/JULIA/$PROJECT_NAME
-            code ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
+            #open the main file , and open the REPL in terminal
+            [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/JULIA/$PROJECT_NAME
+            $EDITOR ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
             julia --project=$PROJECT_NAME
       else
             #creating directory for JULIA
@@ -245,9 +336,9 @@ then
             #setup Julia enviroment
             mkdir ~/Projects/JULIA/$PROJECT_NAME/.vscode
             #Activating the environment, so that i dont have to click it every time
-            echo -e "{\n\t\"julia.environmentPath\": \"$HOME/Projects/JULIA/$PROJECT_NAME\"\n}" >  ~/Projects/JULIA/$PROJECT_NAME/.vscode/settings.json
-            code ~/Projects/JULIA/$PROJECT_NAME
-            code ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
+            [ "$EDITOR" == "code" ] && echo -e "{\n\t\"julia.environmentPath\": \"$HOME/Projects/JULIA/$PROJECT_NAME\"\n}" >  ~/Projects/JULIA/$PROJECT_NAME/.vscode/settings.json
+            [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/JULIA/$PROJECT_NAME
+            $EDITOR ~/Projects/JULIA/$PROJECT_NAME/src/$PROJECT_NAME.jl
             julia --project=$PROJECT_NAME
 
       fi
@@ -257,17 +348,22 @@ then
     then
         echo "Project with that name exists already"
 
+        handle_conda $PROJECT_NAME $LANGUAGE
+
         #open the main file in VS code
-        code ~/Projects/$LANGUAGE/$PROJECT_NAME
-        code ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
+        [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/$LANGUAGE/$PROJECT_NAME
+        $EDITOR ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
     else
         #creating directory
         create_directory $LANGUAGE $PROJECT_NAME
         #just create
         cd ~/Projects/$LANGUAGE/$PROJECT_NAME/
+
+        handle_conda $PROJECT_NAME $LANGUAGE
+
         get_template $DEF_FILE > $DEF_FILE
-        code ~/Projects/$LANGUAGE/$PROJECT_NAME
-        code ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
+        [ "$EDITOR" == "code" ] && $EDITOR ~/Projects/$LANGUAGE/$PROJECT_NAME
+        $EDITOR ~/Projects/$LANGUAGE/$PROJECT_NAME/$DEF_FILE
     fi
 
 else
