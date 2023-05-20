@@ -2,27 +2,35 @@
 
 `polex` is a Bash script for creating and managing projects in different programming languages.
 
-## Recomendations
+`polex` can be used by itself, but if you wish to use Conda for environment creation you can do so by running:
+```
+polex --conda my_language yes
+```
+You can also use Julia's `Pkg.generate()`:
 
-`polex`, can be used completely by itself, however if you wish to use Conda for Python environment creation or Julia's `Pkg.generate()` you can also do it by calling ...
 ```
-```
-If you would like to specify a text editor you can do it by running... 
-```
+polex -julia yes
 ```
 
-If you would like to get the most out of it, we suggest you install these:
+If you would like to specify a text editor (code, nano, vi...), you can do it by running:
+
+```
+polex -e code
+```
+
+## Reccomendations
+
+To get the most out of `polex`, we recommend installing the following:
 
 - [Conda](https://docs.conda.io/en/latest/miniconda.html): A package and environment manager for Python and other languages.
 - [Julia](https://julialang.org/downloads/): A high-level, high-performance programming language for technical computing.
 - [Visual Studio Code](https://code.visualstudio.com/): A code editor with support for many languages and features.
 
-
-
-<details><summary>!! Installing Recomendations</summary>
+<details><summary>!! Installing Recommendations</summary>
 <p>
 
-You can download miniconda by running:
+You can download Miniconda by running the following commands:
+
 ```
 mkdir -p ~/miniconda3
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
@@ -31,7 +39,6 @@ rm -rf ~/miniconda3/miniconda.sh
 ~/miniconda3/bin/conda init bash
 ```
 It also works if you use a different conda distribution!
-
 
 You can download Julia by running:
 ```
@@ -45,7 +52,8 @@ After installing Julia you also need to add its binary directory to your system 
 export PATH="$PATH:/path/to/<Julia directory>/bin"
 ```
 
-You can also make it simpler by installing Julia with
+Alternatively, you can simplify the installation of Julia by running:
+
 ```
 sudo apt-get install julia
 ```
@@ -59,9 +67,7 @@ sudo apt-get install code
 </details>
 
 
-
 ## Usage
-
 
 polex [options] [project_name] [language]
 
@@ -72,6 +78,9 @@ polex [options] [project_name] [language]
 - `-h`, `--help`: Show the help message
 - `-a`, `--add`: Add a new language
 - `-d`, `--delete`: Delete a language and its associated files
+- `--conda`: Use Conda for Python environment creation
+- `--conda-packages`: Use Conda for managing Python packages
+- `-e`, `--editor`: Change default text editor
 
 ### Arguments
 
@@ -102,11 +111,10 @@ polex -d my_language
 
 ## Files
 
-The `polex` project consists of four files and one folder:
+The `polex` project consists of the following files and folders:
 
 - `polex`: The main script for creating and managing projects
 - `settings.sh`: A script that defines various settings and default values
 - `functions.sh`: A script that defines various functions used by the `polex` script
 - `polex-completion.sh`: A script that provides tab completion for the `polex` command
 - `Templates`: A folder that contains template files for different languages
-
