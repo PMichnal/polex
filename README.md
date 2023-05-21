@@ -71,6 +71,7 @@ After downloading the files you might need to give permmision to run the script,
 ```
 chmod +x *
 ```
+in the script directory
 
 ```
 export PATH="$PATH:/path/to/<polex-directory>" #This will add polex to the PATH
