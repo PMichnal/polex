@@ -66,6 +66,12 @@ sudo apt-get install code
 </p>
 </details>
 
+## First run
+After downloading the files run
+```
+export PATH="$PATH:/path/to/<polex-directory>" #This will add polex to the PATH
+polex -e EDITOR  # "code" recommended but if you wish you can also type "nano", "vi" or other
+```
 
 ## Usage
 
