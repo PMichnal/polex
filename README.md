@@ -67,7 +67,11 @@ sudo apt-get install code
 </details>
 
 ## First run
-After downloading the files run
+After downloading the files you might need to give permmision to run the script, you can do so by running:
+```
+chmod +x *
+```
+
 ```
 export PATH="$PATH:/path/to/<polex-directory>" #This will add polex to the PATH
 polex -e EDITOR  # "code" recommended but if you wish you can also type "nano", "vi" or other
