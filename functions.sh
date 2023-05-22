@@ -7,15 +7,6 @@ create_directory () {
   mkdir -p ~/Projects/$language_projects/
   
   if [ "$language_projects" = "JULIA" ]
-  then#Creates a directory for the new project
-create_directory () {
-  local language_projects=$1
-  local project_name=$2
-
-
-  mkdir -p ~/Projects/$language_projects/
-  
-  if [ "$language_projects" = "JULIA" ]
   then
     cd ~/Projects/$language_projects/
     echo "using Pkg; Pkg.generate(\"$project_name\")" | julia
