@@ -6,6 +6,7 @@ wd=$(dirname "$0")
 
 source $wd/settings.sh
 source $wd/functions.sh
+source $wd/polex-completition.sh
 
 
 PROJECT_NAME="$1"
@@ -51,13 +52,15 @@ if [ "$1" = "--conda" ]
 then
     # Get the language and value from the second and third command line arguments
     LANGUAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+    LANGUAGE_conv=${LANGUAGE//+/V}
+    LANGUAGE_conv=${LANGUAGE_conv//#/V}
     VALUE="$3"
     
     # Check if the value is yes or no
     if [ "$VALUE" = "yes" ] || [ "$VALUE" = "no" ]
     then
         # Update the CONDA_USAGE variable for this language in settings.sh with the new value
-        sed -i "/^CONDA_USAGE_$LANGUAGE=/c\CONDA_USAGE_$LANGUAGE=$VALUE" "$wd/settings.sh"
+        sed -i "/^CONDA_USAGE_$LANGUAGE_conv=/c\CONDA_USAGE_$LANGUAGE_conv=$VALUE" "$wd/settings.sh"
         echo "Conda usage for $LANGUAGE updated to $VALUE"
     else
         # If the value is not yes or no, print an error message and exit with an error code
@@ -73,6 +76,8 @@ if [ "$1" = "--conda-packages" ]
 then
     # Get the language from the second command line argument
     LANGUAGE=$(echo "$2" | tr '[:lower:]' '[:upper:]')
+    LANGUAGE_conv=${LANGUAGE//+/V}
+    LANGUAGE_conv=${LANGUAGE_conv//#/V}
     
     # Shift the command line arguments to remove the first two arguments
     shift 2
@@ -81,7 +86,7 @@ then
     PACKAGES="$*"
     
     # Update the CONDA_PACKAGES variable for this language in settings.sh with the new value
-    sed -i "/^CONDA_PACKAGES_$LANGUAGE=/c\CONDA_PACKAGES_$LANGUAGE=\"$PACKAGES\"" "$wd/settings.sh"
+    sed -i "/^CONDA_PACKAGES_$LANGUAGE_conv=/c\CONDA_PACKAGES_$LANGUAGE_conv=\"$PACKAGES\"" "$wd/settings.sh"
     
     echo "Conda packages for $LANGUAGE updated to $PACKAGES"
     
@@ -138,6 +143,7 @@ then
 fi
 
 
+
 # Check if the first argument is -add or --add 
 if [ "$1" = "-add" ] || [ "$1" = "--add" ] || [ "$1" = "-a" ] || [ "$1" = "--a" ]
 then 
@@ -147,7 +153,9 @@ then
     
     # Convert the language name to uppercase 
     LANGUAGE=$(echo "$language_name" | tr '[:lower:]' '[:upper:]') 
-    
+    LANGUAGE_conv=${LANGUAGE//+/V}
+    LANGUAGE_conv=${LANGUAGE_conv//#/V} # Bash is bad in using special signs in variables, so if somebody wants to use C# or A++, it has to be converted
+
     # Check if a directory for this language already exists 
     if [ -d ~/Projects/$LANGUAGE ] 
     then 
@@ -162,12 +170,12 @@ then
         touch "$wd/Templates/$default_file"
         
         # Update settings.sh with a new line defining DEF_FILE for this language 
-        echo "${LANGUAGE}DEF=\"$default_file\"" >> "$wd/settings.sh"
+        echo "${LANGUAGE_conv}DEF=\"$default_file\"" >> "$wd/settings.sh"
         
         # Add a new line to settings.sh defining CONDA_USAGE for this language
-        echo "CONDA_USAGE_$LANGUAGE=no" >> "$wd/settings.sh"
+        echo "CONDA_USAGE_$LANGUAGE_conv=no" >> "$wd/settings.sh"
 
-        echo "CONDA_PACKAGES_$LANGUAGE=\"\"" >> "$wd/settings.sh"
+        echo "CONDA_PACKAGES_$LANGUAGE_conv=\"\"" >> "$wd/settings.sh"
     fi
     
     exit 0 
@@ -231,7 +239,7 @@ then
     then
         # Update the CONDA_USAGE variable for this language in settings.sh with the new value
         sed -i "/^JULIA_PKG=/c\JULIA_PKG=$2" "$wd/settings.sh"
-        echo "Julia usage for updated to $2"
+        echo "Pkg usage for Julia updated to $2"
     else
         # If the value is not yes or no, print an error message and exit with an error code
         echo "Error: Invalid value for -julia option (must be yes or no)"
@@ -265,8 +273,9 @@ then
     fi
 fi
 
-
-DEF_FILE="${LANGUAGE}DEF"
+LANGUAGE_conv=${LANGUAGE//+/V}
+LANGUAGE_conv=${LANGUAGE_conv//#/V}
+DEF_FILE="${LANGUAGE_conv}DEF"
 DEF_FILE=$(eval echo \$$DEF_FILE)
 
 echo "LANGUAGE: $LANGUAGE"
