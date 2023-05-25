@@ -1,4 +1,5 @@
-#Creates a directory for the new project
+source $(dirname "$0")/settings.sh
+
 create_directory () {
   local language_projects=$1
   local project_name=$2
@@ -6,7 +7,7 @@ create_directory () {
 
   mkdir -p ~/Projects/$language_projects/
   
-  if [ "$language_projects" = "JULIA" ]
+  if [ "$language_projects" = "JULIA" ] && [ "$JULIA_PKG" = "yes" ]
   then
     cd ~/Projects/$language_projects/
     echo "using Pkg; Pkg.generate(\"$project_name\")" | julia
@@ -41,9 +42,11 @@ handle_conda() {
     
     # Convert the language to uppercase
     LANGUAGE=$(echo "$LANGUAGE" | tr '[:lower:]' '[:upper:]')
+    LANGUAGE_conv=${LANGUAGE//+/V}
+    LANGUAGE_conv=${LANGUAGE_conv//#/V}
     
     # Get the value of CONDA_USAGE for this language from settings.sh
-    local CONDA_USAGE_VAR="CONDA_USAGE_$LANGUAGE"
+    local CONDA_USAGE_VAR="CONDA_USAGE_$LANGUAGE_conv"
     local CONDA_USAGE=${!CONDA_USAGE_VAR}
     
     # Check if CONDA_USAGE is set to yes
@@ -60,7 +63,7 @@ handle_conda() {
             # If it doesn't, create a new conda environment for this project
             
             # Get the value of CONDA_PACKAGES for this language from settings.sh
-            local CONDA_PACKAGES_VAR="CONDA_PACKAGES_$LANGUAGE"
+            local CONDA_PACKAGES_VAR="CONDA_PACKAGES_$LANGUAGE_conv"
             local CONDA_PACKAGES=${!CONDA_PACKAGES_VAR}
             
             # Create a new conda environment and install the default packages for this language
