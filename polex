@@ -99,43 +99,38 @@ if [ "$1" = "-list" ] || [ "$1" = "-l" ] || [ "$1" = "--list" ] || [ "$1" = "--l
 then
     if [ -d ~/Projects ]
     then
-        if [ -d ~/Projects/* ]
-        then
-            for dir in ~/Projects/*/
-            do
-                if [ "$(ls -A $dir)" ]
-                then
-                    dir_name=$(basename $dir)
-                    case $dir_name in
-                        "PYTHON")
-                            color=$PYTHON_COLOR
-                            ;;
-                        "C++")
-                            color=$CPP_COLOR
-                            ;;
-                        "JULIA")
-                            color=$JULIA_COLOR
-                            ;;
-                        *)
-                            color=$RED
-                            ;;
-                    esac
-                    echo "$dir_name Projects:"
-                    for subdir in $dir*/
-                    do
-                        if [ -d "$subdir" ]
-                        then
-                            subdir_name=$(basename "$subdir")
-                            created=$(stat -c %w "$subdir")
-                            printf "${color}> %-20s${NC} (created: %s)\n" "$subdir_name" "$created"
-                        fi
-                    done
-                    echo -e "\n"
-                fi
-            done
-        else
-            echo "No projects to display"
-        fi
+        for dir in ~/Projects/*/
+        do
+            if [ "$(ls -A $dir)" ]
+            then
+                dir_name=$(basename $dir)
+                case $dir_name in
+                    "PYTHON")
+                        color=$PYTHON_COLOR
+                        ;;
+                    "C++")
+                        color=$CPP_COLOR
+                        ;;
+                    "JULIA")
+                        color=$JULIA_COLOR
+                        ;;
+                    *)
+                        color=$RED
+                        ;;
+                esac
+                echo "$dir_name Projects:"
+                for subdir in $dir*/
+                do
+                    if [ -d "$subdir" ]
+                    then
+                        subdir_name=$(basename "$subdir")
+                        created=$(stat -c %w "$subdir")
+                        printf "${color}> %-20s${NC} (created: %s)\n" "$subdir_name" "$created"
+                    fi
+                done
+                echo -e "\n"
+            fi
+        done
     else
         echo "No projects inside ~/Projects directory"
     fi
